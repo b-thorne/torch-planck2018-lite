@@ -1,0 +1,53 @@
+[build-system]
+requires = [
+    "setuptools>=42",
+    "wheel"
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "torch-planck2018-lite"
+version = "0.1.0"
+description = "A PyTorch implementation of the Planck 2018 Lite likelihood for the Cosmic Microwave Background (CMB) power spectra"
+readme = "README.md"
+authors = [
+    {name = "Benjamin Thorne", email = "bn.thorne@gmail.com"}
+]
+license = "MIT"
+homepage = "https://github.com/bthorne93/torch-planck2018-lite"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+]
+
+[project.urls]
+Source = "https://github.com/bthorne93/torch-planck2018-lite"
+
+[project.scripts]
+# If you have any scripts, you can include them here.
+
+[project.dependencies]
+numpy = "*"
+torch = "*"
+
+[project.optional-dependencies]
+# Include any optional dependencies here.
+
+[project.include]
+torch_planck2018_lite = ["data/*"]
+
+[tool.pytest.ini_options]
+test_suite = "tests"
+
+[tool.pytest-runner]
+setup_requires = ["pytest-runner"]
+
+[tool.pytest]
+tests_require = ["pytest"]

@@ -2,7 +2,7 @@
 PyTorch version of Planck's plik-lite likelihood with the option to include
 the low-ell temperature as two Gaussian bins.
 
-This is based on the NumPy version here: 
+This is based on the NumPy version here:
     https://github.com/heatherprince/planck-lite-py/tree/master
 
 The official Planck likelihoods are availabe at https://pla.esac.esa.int/
