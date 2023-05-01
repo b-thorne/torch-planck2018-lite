@@ -46,6 +46,12 @@ To run the tests, you can use the `unittest` module:
 python -m unittest discover tests
 ```
 
+this will run all the test cases defined in the `tests` directory. 
+
+## Licesnse 
+
+This project is under the MIT License. See the LICENSE file for more details.
+
 ## Credit
 
 This is a PyTorch implementation of the `planck-lite-py` code by [Heather Prince](https://github.com/heatherprince/planck-lite-py). 
