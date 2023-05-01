@@ -8,6 +8,8 @@ setup(
         "numpy",
         "torch",
     ],
+    include_package_data=True,
+    package_data={"torch_planck2018_lite": ["data/*"]},
     setup_requires=["pytest-runner"],
     tests_require=["pytest"],
     test_suite="tests",
