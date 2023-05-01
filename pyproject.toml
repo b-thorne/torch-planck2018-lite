@@ -16,7 +16,8 @@ authors = [
 license = {file = "LICENSE"}
 dependencies = [
     "numpy",
-    "torch"
+    "torch",
+    "scipy"
 ]
 
 

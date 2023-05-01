@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 import torch
-from torch_planck2018_lite.main import PlanckLitePy
+from src.main import PlanckLitePy
 
 
 class TestPlanckLitePy(unittest.TestCase):
