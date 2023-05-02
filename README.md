@@ -48,7 +48,7 @@ python -m unittest discover tests
 
 this will run all the test cases defined in the `tests` directory. 
 
-## Licesnse 
+## License 
 
 This project is under the MIT License. See the LICENSE file for more details.
 
