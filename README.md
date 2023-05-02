@@ -1,10 +1,10 @@
 # Torch Planck 2018 Lite
 
-Torch Planck 2018 Lite is a PyTorch implementation of the Planck 2018 Lite likelihood for the Cosmic Microwave Background (CMB) power spectra. This package provides a convenient and efficient way to compute the log-likelihood of CMB power spectra given a cosmological model.
+`torchplite` is a PyTorch implementation of the Planck 2018 Lite likelihood for the Cosmic Microwave Background (CMB) power spectra. This package provides a convenient and efficient way to compute the log-likelihood of CMB power spectra given a cosmological model.
 
 ## Installation
 
-You can install Torch Planck 2018 Lite via pip from PyPI:
+You can install `torchplite` via pip from PyPI:
 
 ```
 pip install torch-planck2018-lite
@@ -14,10 +14,10 @@ This package requires Python 3.6 or later and PyTorch 1.7 or later.
 
 ## Usage
 
-To use the Torch Planck 2018 Lite package, you can import the `PlanckLitePy` class and create an instance with the desired settings:
+To use the `torchplite` package, you can import the `PlanckLitePy` class and create an instance with the desired settings:
 
 ```python
-from torch_planck2018_lite import PlanckLitePy
+from torchplite import PlanckLitePy
 
 # Initialize the PlanckLitePy object
 planck = PlanckLitePy(year=2018, spectra="TTTEEE", use_low_ell_bins=False)

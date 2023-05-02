@@ -6,7 +6,7 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "torch-planck2018-lite"
+name = "torchplite"
 version = "0.1.0"
 description = "A PyTorch implementation of the Planck 2018 Lite likelihood for the Cosmic Microwave Background (CMB) power spectra"
 readme = "README.md"
