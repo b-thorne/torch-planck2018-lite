@@ -7,7 +7,7 @@
 You can install `torchplite` via pip from PyPI:
 
 ```
-pip install torch-planck2018-lite
+pip install torchplite
 ```
 
 This package requires Python 3.6 or later and PyTorch 1.7 or later.
