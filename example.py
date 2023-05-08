@@ -8,9 +8,8 @@ ls_, dltt, dlte, dlee = np.genfromtxt("data/Dl_planck2015fit.dat", unpack=True)
 fac = ls_ * (ls_ + 1) / 2 / np.pi
 
 cltt = dltt / fac
-clte = dlte / fac 
+clte = dlte / fac
 clee = dlee / fac
-
 cl = np.concatenate((cltt, clte, clee))
 
 binned_cl = loglike.W @ cl
@@ -19,6 +18,7 @@ bin_num_TE = np.arange(loglike.N_bin_TE)
 
 ntt, nte = loglike.N_bin_TT, loglike.N_bin_TE
 
+print(loglike)
 
 fig, ax = plt.subplots(1, 1)
 ax.loglog(bin_num_TT, binned_cl[:ntt])
