@@ -23,19 +23,46 @@ class PlanckLogLike(object):
 
         self._resolve_binning_setup()
         self._read_high_ell_data_dependencies()
-
         if include_low_ell_TT:
             self._read_low_ell_data_dependencies()
-
         self._handle_low_ell_TT_combination()
-        # At this point we have initialized self.blmin, self.blmax, self.bweight
-        # self.covmat, and can use these to construct the objects appearing in the
-        # likelihood function.
 
         self.initialize_W()
         self.C_inv = np.linalg.inv(self.C)
 
         return
+
+    def __repr__(self):
+        return f"""PlanckLogLike(year={self.year}, spectra={self.spectra}, include_low_ell_TT={self.include_low_ell_TT})"""
+
+    def __str__(self):
+        return f"""
+        {self.__repr__()}
+
+        Info:
+        =====
+
+        Year: {self.year}
+        Spectra: {self.spectra}
+        Use low ell TT data: {self.include_low_ell_TT}
+
+        Number of TT bins: {self.N_bin_TT}
+        Number of TE bins: {self.N_bin_TE}
+        Number of EE bins: {self.N_bin_EE}
+
+        Total number of data bins: {self.N_bin_total}
+        Expected shape of input spectra: {self.N_multipoles}
+
+        Lmin input spectra: {self.lmin_spectra}
+        Lmax input spectra: {self.lmax}
+        Lmin TT data: {self.lmin_TT_data}
+        Lmin TE and EE data: {self.lmin_TE_EE_data}
+
+        Shape of weights matrix W: {self.W.shape}
+        Shape of inverse covariance matrix C_inv: {self.C_inv.shape}
+
+        
+        """
 
     def __call__(self, C_ell_b):
         R = self.C_hat_ell_b - self.W @ C_ell_b
@@ -73,7 +100,6 @@ class PlanckLogLike(object):
                     self.blmin[row] : self.blmax[row] + 1
                 ]
         self.W = W
-       
 
     def _handle_low_ell_TT_combination(self):
         # Append low ell quantities to high ell quantities.
@@ -107,7 +133,6 @@ class PlanckLogLike(object):
         self.blmin_low_ell = np.loadtxt(data_dir / "blmin_low_ell.dat").astype(int)
         self.blmax_low_ell = np.loadtxt(data_dir / "blmax_low_ell.dat").astype(int)
         self.bin_w_low_ell = np.loadtxt(data_dir / "bweight_low_ell.dat")
-
 
     def _read_high_ell_data_dependencies(self):
         if self.year == 2015:
