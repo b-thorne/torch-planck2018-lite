@@ -4,63 +4,141 @@ import scipy.linalg
 from pathlib import Path
 
 
-
 def _check_args(arg, allowed_args):
     if not arg in allowed_args:
-        raise ValueError(f"Invalid value: {args}. Allowed values are {allowed_args}.")
+        raise ValueError(f"Invalid value: {arg}. Allowed values are {allowed_args}.")
+
 
 class PlanckLogLike(object):
-    DATADIR = Path(__file__).parent / "data"
+    DATA_DIR = Path(__file__).parent.parent / "data"
 
     def __init__(self, year: int, spectra: str, include_low_ell_TT: bool):
-        
         _check_args(year, {2015, 2022})
         _check_args(spectra, {"TT", "TTTEEE"})
         _check_args(include_low_ell_TT, {True, False})
 
-
         self.year = year
-        self.spectra = spectra 
+        self.spectra = spectra
         self.include_low_ell_TT = include_low_ell_TT
 
         self._resolve_binning_setup()
-        self._resolve_data_file_dependencies()
+        self._read_high_ell_data_dependencies()
 
+        if include_low_ell_TT:
+            self._read_low_ell_data_dependencies()
+
+        self._handle_low_ell_TT_combination()
+        # At this point we have initialized self.blmin, self.blmax, self.bweight
+        # self.covmat, and can use these to construct the objects appearing in the
+        # likelihood function.
 
         self.initialize_W()
-        self.initialize_C_ell_b()
-        self.initialize_C_inv()
+        self.C_inv = np.linalg.inv(self.C)
 
         return
 
     def __call__(self, C_ell_b):
-        return
+        R = self.C_hat_ell_b - self.W @ C_ell_b
+        return - 0.5 * R.T @ self.C_inv @ R
 
     def initialize_W(self):
-        return
+        # W is the weight / windowing matrix that operatres on input spectra.
+        # The input spectra ar the three TT, TE, EE spectra at multipoles
+        # 2 - 2508. Therefore, W will have shape (N_bin_total, 3 * 2507).
+        self.lmin_spectra = 2
+        W = np.zeros((self.N_bin_total, self.N_multipoles))
+        for row in range(self.N_bin_TT):
+            inds = slice(
+                self.blmin_TT[row] + self.lmin_TT_data - self.lmin_spectra,
+                self.blmax_TT[row] + self.lmin_TT_data - self.lmin_spectra + 1,
+            )
+            W[row][inds] = self.bin_w_TT[self.blmin_TT[row] : self.blmax_TT[row] + 1]
 
-    def initialize_C_ell_b(self):
-        return
+        if self.include_low_ell_TT:
+            for row in range(self.N_bin_TE):
+                inds = slice(
+                    2507 + self.blmin[row] + self.lmin_TE_EE_data - self.lmin_spectra,
+                    2507 + self.blmax[row] + self.lmin_TE_EE_data - self.lmin_spectra + 1,
+                )
+                W[row + self.N_bin_TT][inds] = self.bin_w[
+                    self.blmin[row] : self.blmax[row] + 1
+                ]
 
-    def initialize_C_inv(self):
-        return
+            for row in range(self.N_bin_EE):
+                inds = slice(
+                    2 * 2507 + self.blmin[row] + self.lmin_TE_EE_data - self.lmin_spectra,
+                    2 * 2507 + self.blmax[row] + self.lmin_TE_EE_data - self.lmin_spectra + 1,
+                )
+                W[row + self.N_bin_TT + self.N_bin_TE][inds] = self.bin_w[
+                    self.blmin[row] : self.blmax[row] + 1
+                ]
+        self.W = W
+       
 
-    def _get_C(self):
-        return
+    def _handle_low_ell_TT_combination(self):
+        # Append low ell quantities to high ell quantities.
+        if self.include_low_ell_TT:
+            self.blmin_TT = np.concatenate(
+                (self.blmin_low_ell, self.blmin + len(self.bin_w_low_ell))
+            )
+            self.blmax_TT = np.concatenate(
+                (self.blmax_low_ell, self.blmax + len(self.bin_w_low_ell))
+            )
+            self.bin_w_TT = np.concatenate((self.bin_w_low_ell, self.bin_w))
+            self.C_hat_ell_b = np.concatenate(
+                (self.C_hat_ell_b_low_ell, self.C_hat_ell_b)
+            )
 
-    def _resolve_data_file_dependencies(self):
+            self.C = np.zeros((self.N_bin_total, self.N_bin_total))
+            self.C[0:2, 0:2] = np.diag(self.C_hat_ell_b_sigma_low_ell ** 2)
+            self.C[2:, 2:] = self.covmat
+        else:
+            self.blmin_TT = self.blmin
+            self.blmax_TT = self.blmax
+            self.bin_w_TT = self.bin_w
 
+    def _read_low_ell_data_dependencies(self):
+        data_dir = self.DATA_DIR / f"planck{self.year}_low_ell"
+
+        _, self.C_hat_ell_b_low_ell, self.C_hat_ell_b_sigma_low_ell = np.genfromtxt(
+            data_dir / f"CTT_bin_low_ell_{self.year}.dat", unpack=True
+        )
+
+        self.blmin_low_ell = np.loadtxt(data_dir / "blmin_low_ell.dat").astype(int)
+        self.blmax_low_ell = np.loadtxt(data_dir / "blmax_low_ell.dat").astype(int)
+        self.bin_w_low_ell = np.loadtxt(data_dir / "bweight_low_ell.dat")
+
+
+    def _read_high_ell_data_dependencies(self):
         if self.year == 2015:
-            self.data_dir = self.DATA_DIR / "planck2015_plik_lite"
-            self.version = 18
+            data_dir = self.DATA_DIR / "planck2015_plik_lite"
+            version = 18
         elif self.year == 2018:
-            self.data_dir = self.DATA_DIR / "planck2018_plik_lite"
-            self.version = 22
+            data_dir = self.DATA_DIR / "planck2018_plik_lite"
+            version = 22
 
-        self.likelihood_file = self.data_dir / "cl_cmb_plik_v{version}.dat"
-        
-        
-        return
+        _, self.C_hat_ell_b, _ = np.genfromtxt(
+            data_dir / f"cl_cmb_plik_v{version}.dat", unpack=True
+        )
+        self.cov_file = data_dir / f"c_matrix_plik_v{version}.dat"
+        self.blmin = np.loadtxt(data_dir / "blmin.dat").astype(int)
+        self.blmax = np.loadtxt(data_dir / "blmax.dat").astype(int)
+        self.bin_w = np.loadtxt(data_dir / "bweight.dat")
+
+        cov_file = data_dir / f"c_matrix_plik_v{version}.dat"
+        f = FortranFile(cov_file, "r")
+        self.covmat = f.read_reals(dtype=float).reshape(
+            (self.N_bin_high_ell, self.N_bin_high_ell)
+        )
+        for i in range(self.N_bin_high_ell):
+            for j in range(self.N_bin_high_ell):
+                self.covmat[i, j] = self.covmat[j, i]
+
+        if self.spectra == "TT":
+            # For the special case of just TT, remove the TE and EE covariances.
+            self.covmat = self.covmat[
+                0 : self.N_bin_TT_high_ell, self.N_bin_TT_high_ell
+            ]
 
     def _resolve_binning_setup(self):
         """
@@ -75,12 +153,14 @@ class PlanckLogLike(object):
         self.N_bin_EE = 199 if self.spectra == "TTTEEE" else 0
 
         self.N_bin_TT_low_ell = 2 if self.include_low_ell_TT else 0
-        self.lmin_TT = 2 if self.include_low_ell_TT else 30
+        self.lmin_TT_data = 2 if self.include_low_ell_TT else 30
+        self.lmin_TE_EE_data = 30
 
         self.N_bin_TT = self.N_bin_TT_low_ell + self.N_bin_TT_high_ell
         self.N_bin_high_ell = self.N_bin_TT_high_ell + self.N_bin_TE + self.N_bin_EE
+        self.N_bin_total = self.N_bin_TT + self.N_bin_TE + self.N_bin_EE
 
-        return
+        self.N_multipoles = 2507 if self.spectra == "TT" else 3 * 2507
 
 
 if __name__ == "__main__":
