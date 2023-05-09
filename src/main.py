@@ -261,4 +261,4 @@ class PlanckLitePy:
         else:
             print("not implemented")
 
-        return -0.5 * diff_vec.t() @ self.fisher  @ diff_vec
+        return -0.5 * diff_vec.t() @ self.fisher @ diff_vec
